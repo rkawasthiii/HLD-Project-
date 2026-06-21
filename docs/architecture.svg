@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 790" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#1f2740" flood-opacity="0.18"/>
+    </filter>
+    <marker id="ab" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#2f6df6"/>
+    </marker>
+    <marker id="ao" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#e07b2e"/>
+    </marker>
+    <marker id="ag" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#8a93ad"/>
+    </marker>
+    <marker id="agr" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#2faa6a"/>
+    </marker>
+    <style>
+      .band-l  { font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+      .title   { font-size:30px; font-weight:800; fill:#1f2740; }
+      .sub     { font-size:14.5px; fill:#6b7390; }
+      .bx-t    { font-size:16px; font-weight:700; fill:#1f2740; }
+      .bx-s    { font-size:12px; fill:#5a627c; }
+      .chip    { font-size:11.5px; font-weight:600; }
+      .al      { font-size:12px; fill:#5a627c; }
+      .albl    { font-size:11.5px; font-weight:600; }
+      .num     { font-size:12px; font-weight:800; fill:#fff; }
+    </style>
+  </defs>
+
+  <!-- title -->
+  <text x="40" y="46" class="title">Search Typeahead — System Architecture</text>
+  <text x="40" y="70" class="sub">Cache-first reads · consistent-hash distributed cache · batched aggregated writes · recency-aware trending</text>
+
+  <!-- ===== bands ===== -->
+  <rect x="24" y="92"  width="1152" height="250" rx="16" fill="#eef3ff" stroke="#d3def9"/>
+  <text x="44" y="116" class="band-l" fill="#2f6df6">Read path  ·  GET /suggest</text>
+
+  <rect x="24" y="360" width="1152" height="190" rx="16" fill="#fff5ec" stroke="#f6ddc2"/>
+  <text x="44" y="384" class="band-l" fill="#e07b2e">Write path  ·  POST /search  (asynchronous, batched)</text>
+
+  <rect x="24" y="568" width="1152" height="190" rx="16" fill="#eef7f1" stroke="#d2e9da"/>
+  <text x="44" y="592" class="band-l" fill="#2faa6a">Supporting components</text>
+
+  <!-- ===== READ band boxes ===== -->
+  <!-- Browser -->
+  <g filter="url(#shadow)">
+    <rect x="46" y="150" width="180" height="160" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="46" y="150" width="180" height="34" rx="12" fill="#1f2740"/>
+    <rect x="46" y="168" width="180" height="16" fill="#1f2740"/>
+    <text x="136" y="172" text-anchor="middle" class="bx-t" fill="#fff">Browser UI</text>
+    <text x="60" y="206" class="bx-s">Vanilla JS · no build</text>
+    <text x="60" y="226" class="bx-s">• debounced input (120ms)</text>
+    <text x="60" y="246" class="bx-s">• dropdown + keyboard nav</text>
+    <text x="60" y="266" class="bx-s">• prefix highlight</text>
+    <text x="60" y="286" class="bx-s">• trending + live metrics</text>
+  </g>
+
+  <!-- HTTP Server -->
+  <g filter="url(#shadow)">
+    <rect x="300" y="170" width="220" height="120" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="300" y="170" width="220" height="34" rx="12" fill="#2f6df6"/>
+    <rect x="300" y="188" width="220" height="16" fill="#2f6df6"/>
+    <text x="410" y="192" text-anchor="middle" class="bx-t" fill="#fff">HTTP Server</text>
+    <text x="316" y="228" class="bx-s">Python stdlib http.server</text>
+    <text x="316" y="248" class="bx-s">routing · JSON · static UI</text>
+    <text x="316" y="268" class="bx-s">threaded request handling</text>
+  </g>
+
+  <!-- Distributed Cache -->
+  <g filter="url(#shadow)">
+    <rect x="575" y="138" width="295" height="170" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="575" y="138" width="295" height="34" rx="12" fill="#2f6df6"/>
+    <rect x="575" y="156" width="295" height="16" fill="#2f6df6"/>
+    <text x="722" y="160" text-anchor="middle" class="bx-t" fill="#fff">Distributed Cache</text>
+    <text x="591" y="194" class="bx-s">suggestion lists per prefix · per-node TTL</text>
+    <!-- four node chips -->
+    <g class="chip">
+      <rect x="591" y="206" width="62" height="40" rx="8" fill="#eaf0ff" stroke="#b9ccf7"/>
+      <text x="622" y="225" text-anchor="middle" fill="#2f6df6">cache-a</text>
+      <text x="622" y="239" text-anchor="middle" fill="#8a93ad" font-size="9.5">TTL 30s</text>
+      <rect x="659" y="206" width="62" height="40" rx="8" fill="#eaf0ff" stroke="#b9ccf7"/>
+      <text x="690" y="225" text-anchor="middle" fill="#2f6df6">cache-b</text>
+      <text x="690" y="239" text-anchor="middle" fill="#8a93ad" font-size="9.5">TTL 30s</text>
+      <rect x="727" y="206" width="62" height="40" rx="8" fill="#eaf0ff" stroke="#b9ccf7"/>
+      <text x="758" y="225" text-anchor="middle" fill="#2f6df6">cache-c</text>
+      <text x="758" y="239" text-anchor="middle" fill="#8a93ad" font-size="9.5">TTL 30s</text>
+      <rect x="795" y="206" width="62" height="40" rx="8" fill="#eaf0ff" stroke="#b9ccf7"/>
+      <text x="826" y="225" text-anchor="middle" fill="#2f6df6">cache-d</text>
+      <text x="826" y="239" text-anchor="middle" fill="#8a93ad" font-size="9.5">TTL 30s</text>
+    </g>
+    <text x="591" y="272" class="bx-s">routed by consistent-hash ring</text>
+    <text x="591" y="290" class="bx-s">(150 virtual nodes / node → even spread)</text>
+  </g>
+
+  <!-- Trie Index -->
+  <g filter="url(#shadow)">
+    <rect x="920" y="170" width="235" height="120" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="920" y="170" width="235" height="34" rx="12" fill="#2f6df6"/>
+    <rect x="920" y="188" width="235" height="16" fill="#2f6df6"/>
+    <text x="1037" y="192" text-anchor="middle" class="bx-t" fill="#fff">Trie Index (in-memory)</text>
+    <text x="936" y="228" class="bx-s">primary serving index</text>
+    <text x="936" y="248" class="bx-s">cached top-K per node</text>
+    <text x="936" y="268" class="bx-s">lookup O(len(prefix))</text>
+  </g>
+
+  <!-- ===== WRITE band boxes ===== -->
+  <!-- Batch Writer -->
+  <g filter="url(#shadow)">
+    <rect x="575" y="386" width="295" height="140" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="575" y="386" width="295" height="34" rx="12" fill="#e07b2e"/>
+    <rect x="575" y="404" width="295" height="16" fill="#e07b2e"/>
+    <text x="722" y="408" text-anchor="middle" class="bx-t" fill="#fff">Batch Writer (background thread)</text>
+    <text x="591" y="442" class="bx-s">in-memory buffer:  query → count</text>
+    <text x="591" y="462" class="bx-s">aggregates repeats (1000× → +1000)</text>
+    <text x="591" y="482" class="bx-s">flush every 2s OR 500 buffered</text>
+    <text x="591" y="502" class="bx-s">trade-off: ≤1 window lost on crash</text>
+  </g>
+
+  <!-- SQLite -->
+  <g filter="url(#shadow)">
+    <rect x="920" y="396" width="235" height="120" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="920" y="396" width="235" height="34" rx="12" fill="#414b66"/>
+    <rect x="920" y="414" width="235" height="16" fill="#414b66"/>
+    <text x="1037" y="418" text-anchor="middle" class="bx-t" fill="#fff">SQLite Primary Store</text>
+    <text x="936" y="454" class="bx-s">durable source of truth</text>
+    <text x="936" y="474" class="bx-s">query_counts(query, count, ts)</text>
+    <text x="936" y="494" class="bx-s">1 transaction per flush</text>
+  </g>
+
+  <!-- ===== SUPPORTING band boxes ===== -->
+  <g filter="url(#shadow)">
+    <rect x="300" y="606" width="250" height="110" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="300" y="606" width="250" height="30" rx="12" fill="#2faa6a"/>
+    <rect x="300" y="620" width="250" height="16" fill="#2faa6a"/>
+    <text x="425" y="627" text-anchor="middle" class="bx-t" fill="#fff" font-size="14">Consistent-Hash Ring</text>
+    <text x="316" y="660" class="bx-s">maps prefix-key → owning node</text>
+    <text x="316" y="679" class="bx-s">add/remove node remaps only ~1/N</text>
+    <text x="316" y="698" class="bx-s">/cache/debug exposes routing</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="575" y="606" width="270" height="110" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="575" y="606" width="270" height="30" rx="12" fill="#2faa6a"/>
+    <rect x="575" y="620" width="270" height="16" fill="#2faa6a"/>
+    <text x="710" y="627" text-anchor="middle" class="bx-t" fill="#fff" font-size="14">Trending Ranker</text>
+    <text x="591" y="660" class="bx-s">score = count + W · recent</text>
+    <text x="591" y="679" class="bx-s">recent = exp-decay moving sum (τ=5m)</text>
+    <text x="591" y="698" class="bx-s">spikes fade → no permanent over-rank</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="875" y="606" width="280" height="110" rx="12" fill="#ffffff" stroke="#cdd5e6"/>
+    <rect x="875" y="606" width="280" height="30" rx="12" fill="#2faa6a"/>
+    <rect x="875" y="620" width="280" height="16" fill="#2faa6a"/>
+    <text x="1015" y="627" text-anchor="middle" class="bx-t" fill="#fff" font-size="14">Metrics &amp; Reporting</text>
+    <text x="891" y="660" class="bx-s">latency p50/p95/p99 per endpoint</text>
+    <text x="891" y="679" class="bx-s">cache hit-rate · DB read/write counts</text>
+    <text x="891" y="698" class="bx-s">exposed at GET /metrics</text>
+  </g>
+
+  <!-- ===== ARROWS ===== -->
+  <!-- read -->
+  <line x1="226" y1="198" x2="298" y2="198" stroke="#2f6df6" stroke-width="2.4" marker-end="url(#ab)"/>
+  <text x="262" y="190" text-anchor="middle" class="albl" fill="#2f6df6">request</text>
+  <line x1="298" y1="262" x2="226" y2="262" stroke="#2f6df6" stroke-width="2.4" marker-end="url(#ab)"/>
+  <text x="262" y="278" text-anchor="middle" class="albl" fill="#2f6df6">JSON</text>
+
+  <circle cx="548" cy="214" r="9" fill="#2f6df6"/><text x="548" y="218" text-anchor="middle" class="num">1</text>
+  <line x1="520" y1="226" x2="573" y2="220" stroke="#2f6df6" stroke-width="2.4" marker-end="url(#ab)"/>
+  <text x="547" y="250" text-anchor="middle" class="albl" fill="#2f6df6">lookup(prefix, mode)</text>
+
+  <circle cx="895" cy="178" r="9" fill="#2f6df6"/><text x="895" y="182" text-anchor="middle" class="num">2</text>
+  <line x1="870" y1="196" x2="918" y2="196" stroke="#2f6df6" stroke-width="2.4" stroke-dasharray="6 5" marker-end="url(#ab)"/>
+  <text x="893" y="216" text-anchor="middle" class="albl" fill="#2f6df6">miss → fall back</text>
+
+  <circle cx="895" cy="262" r="9" fill="#2f6df6"/><text x="895" y="266" text-anchor="middle" class="num">3</text>
+  <line x1="918" y1="250" x2="872" y2="256" stroke="#2f6df6" stroke-width="2.4" marker-end="url(#ab)"/>
+  <text x="893" y="284" text-anchor="middle" class="albl" fill="#2f6df6">fill top-K (TTL)</text>
+
+  <!-- write -->
+  <path d="M 410 290 C 410 350, 560 360, 645 392" fill="none" stroke="#e07b2e" stroke-width="2.4" marker-end="url(#ao)"/>
+  <text x="470" y="350" text-anchor="middle" class="albl" fill="#e07b2e">POST /search → buffer (O(1), no DB)</text>
+
+  <circle cx="895" cy="446" r="9" fill="#e07b2e"/><text x="895" y="450" text-anchor="middle" class="num">4</text>
+  <line x1="870" y1="458" x2="918" y2="458" stroke="#e07b2e" stroke-width="2.4" marker-end="url(#ao)"/>
+  <text x="893" y="436" text-anchor="middle" class="albl" fill="#e07b2e">flush: 1 txn</text>
+
+  <line x1="690" y1="386" x2="690" y2="310" stroke="#e07b2e" stroke-width="2.2" stroke-dasharray="6 5" marker-end="url(#ao)"/>
+  <text x="690" y="334" text-anchor="middle" class="albl" fill="#e07b2e">invalidate</text>
+
+  <path d="M 815 386 C 880 350, 960 320, 1010 292" fill="none" stroke="#e07b2e" stroke-width="2.2" stroke-dasharray="6 5" marker-end="url(#ao)"/>
+  <text x="930" y="350" text-anchor="middle" class="albl" fill="#e07b2e">refresh top-K</text>
+
+  <line x1="1037" y1="396" x2="1037" y2="292" stroke="#8a93ad" stroke-width="2.2" stroke-dasharray="5 5" marker-end="url(#ag)"/>
+  <text x="1090" y="345" text-anchor="middle" class="albl" fill="#8a93ad">build at start</text>
+
+  <!-- supporting connectors -->
+  <line x1="455" y1="606" x2="610" y2="310" stroke="#2faa6a" stroke-width="1.8" stroke-dasharray="4 5" marker-end="url(#agr)"/>
+  <line x1="715" y1="606" x2="715" y2="528" stroke="#2faa6a" stroke-width="1.8" stroke-dasharray="4 5" marker-end="url(#agr)"/>
+  <text x="754" y="566" text-anchor="middle" class="albl" fill="#2faa6a">record recency</text>
+  <line x1="1015" y1="606" x2="1037" y2="518" stroke="#2faa6a" stroke-width="1.8" stroke-dasharray="4 5" marker-end="url(#agr)"/>
+
+  <!-- legend -->
+  <g transform="translate(40,762)">
+    <line x1="0" y1="-4" x2="34" y2="-4" stroke="#2f6df6" stroke-width="2.6" marker-end="url(#ab)"/>
+    <text x="42" y="0" class="al" fill="#5a627c">read path</text>
+    <line x1="150" y1="-4" x2="184" y2="-4" stroke="#e07b2e" stroke-width="2.6" marker-end="url(#ao)"/>
+    <text x="192" y="0" class="al" fill="#5a627c">write path</text>
+    <line x1="305" y1="-4" x2="339" y2="-4" stroke="#8a93ad" stroke-width="2.6" stroke-dasharray="5 5" marker-end="url(#ag)"/>
+    <text x="347" y="0" class="al" fill="#5a627c">startup</text>
+    <line x1="430" y1="-4" x2="464" y2="-4" stroke="#2faa6a" stroke-width="2.6" stroke-dasharray="4 5" marker-end="url(#agr)"/>
+    <text x="472" y="0" class="al" fill="#5a627c">supporting / async update</text>
+  </g>
+</svg>

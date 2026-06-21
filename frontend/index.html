@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Typeahead</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <h1>Search Typeahead</h1>
+    <p class="sub">Type to get top-10 suggestions &middot; Enter to search &middot;
+      distributed cache + consistent hashing + batched writes</p>
+
+    <div class="search">
+      <div class="search-row">
+        <input id="box" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Search for anything... (try 'iphone', 'java', 'best laptop')"
+               aria-label="Search" />
+        <button id="go">Search</button>
+      </div>
+
+      <label class="toggle">
+        <input type="checkbox" id="trendingMode" />
+        recency-aware ranking
+      </label>
+
+      <ul id="suggestions" class="dropdown" role="listbox"></ul>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div id="result" class="result hidden"></div>
+
+    <section class="trending">
+      <h2>🔥 Trending now</h2>
+      <ol id="trending" class="trending-list"></ol>
+    </section>
+
+    <section class="metrics">
+      <h2>Live metrics</h2>
+      <div id="metrics" class="metric-grid">loading…</div>
+      <p class="hint">p95 latency, cache hit-rate and write-reduction update live.
+        See <code>GET /metrics</code>, <code>GET /cache/debug?prefix=iphone</code>.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

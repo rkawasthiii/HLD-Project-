@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Search Typeahead — Project Report</title>
+<style>
+  @page { size: A4; margin: 17mm 15mm; }
+  :root {
+    --ink:#1f2740; --muted:#5a627c; --line:#dce1ee;
+    --blue:#2f6df6; --orange:#e07b2e; --green:#2faa6a; --bg:#f6f8fd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family:"Segoe UI", Helvetica, Arial, sans-serif;
+    color:var(--ink); margin:0; font-size:10.6pt; line-height:1.5;
+  }
+  h1,h2,h3 { line-height:1.2; }
+  h2 {
+    font-size:17pt; margin:0 0 4px; padding-bottom:8px;
+    border-bottom:3px solid var(--blue);
+  }
+  .sec-no { color:var(--blue); font-weight:800; }
+  h3 { font-size:12pt; margin:18px 0 4px; color:var(--ink); }
+  p { margin:6px 0; }
+  code, .mono { font-family:"Consolas","SF Mono",Menlo,monospace; font-size:9.4pt; }
+  code { background:var(--bg); padding:1px 5px; border-radius:4px; color:#244; }
+  pre {
+    background:#0f1426; color:#e6ebf7; padding:12px 14px; border-radius:8px;
+    font-family:"Consolas",monospace; font-size:8.9pt; line-height:1.45;
+    overflow:auto; white-space:pre-wrap;
+  }
+  pre .c { color:#7f8bb0; }
+  table { width:100%; border-collapse:collapse; margin:10px 0; font-size:9.5pt; }
+  th,td { border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top; }
+  th { background:var(--bg); font-weight:700; }
+  td.mono, th.mono { font-family:"Consolas",monospace; font-size:9pt; }
+  .section { page-break-before: always; padding-top:4px; }
+  .lead { color:var(--muted); font-size:10.6pt; }
+  .callout {
+    border-left:4px solid var(--orange); background:#fff6ee;
+    padding:8px 14px; border-radius:0 8px 8px 0; margin:12px 0;
+  }
+  .callout.blue { border-color:var(--blue); background:#eef3ff; }
+  .callout.green{ border-color:var(--green); background:#eef7f1; }
+  .callout b { color:var(--ink); }
+  figure { margin:14px 0; text-align:center; }
+  figure img { width:100%; border:1px solid var(--line); border-radius:8px; }
+  figcaption { color:var(--muted); font-size:9pt; margin-top:6px; }
+  .pill { display:inline-block; font-size:8.6pt; font-weight:700; padding:2px 8px;
+          border-radius:20px; color:#fff; }
+  .m-get { background:var(--green); } .m-post { background:var(--orange); }
+  ul { margin:6px 0 6px 0; padding-left:20px; } li { margin:3px 0; }
+  .kpi-row { display:flex; gap:10px; margin:14px 0; }
+  .kpi { flex:1; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--bg); }
+  .kpi .v { font-size:18pt; font-weight:800; color:var(--blue); }
+  .kpi .l { font-size:8.4pt; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+
+  /* cover */
+  .cover { height:255mm; display:flex; flex-direction:column; justify-content:center; }
+  .cover .eyebrow { color:var(--blue); font-weight:800; letter-spacing:.18em; text-transform:uppercase; font-size:11pt; }
+  .cover h1 { font-size:34pt; margin:10px 0 6px; letter-spacing:-.02em; }
+  .cover .tag { color:var(--muted); font-size:13pt; max-width:150mm; }
+  .cover .meta { margin-top:34px; border-top:1px solid var(--line); padding-top:18px; font-size:10.5pt; }
+  .cover .meta div { margin:5px 0; }
+  .cover .meta b { display:inline-block; width:42mm; color:var(--muted); font-weight:600; }
+  .stack { margin-top:22px; }
+  .stack span { display:inline-block; background:var(--bg); border:1px solid var(--line);
+    border-radius:20px; padding:4px 12px; margin:3px 4px 0 0; font-size:9pt; font-weight:600; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="eyebrow">HLD101 · SST-2028 · Project Report</div>
+  <h1>Search Typeahead System</h1>
+  <div class="tag">A low-latency search-suggestion service: prefix typeahead, a distributed
+    cache routed by consistent hashing, batched aggregated writes, and recency-aware trending.</div>
+
+  <div class="stack">
+    <span>Python (standard library only)</span>
+    <span>SQLite</span>
+    <span>Vanilla JS</span>
+    <span>Trie index</span>
+    <span>Consistent hashing</span>
+    <span>Batch writes</span>
+  </div>
+
+  <div class="meta">
+    <div><b>Repository</b> <span class="mono">github.com/rkawasthiii/HLD-college-project-</span></div>
+    <div><b>Commit for grading</b> <span class="mono">full 40-char hash submitted on the form</span></div>
+    <div><b>Run command</b> <span class="mono">python scripts/generate_dataset.py &amp;&amp; python -m backend.server</span></div>
+    <div><b>Dataset size</b> 120,000 queries (Zipf-distributed; ≥100k required)</div>
+  </div>
+</section>
+
+<!-- ============ 1. ARCHITECTURE ============ -->
+<section class="section">
+  <h2><span class="sec-no">1.</span>&nbsp; Architecture</h2>
+  <p class="lead">The system is a single Python process that serves both the JSON API and the
+  UI. Reads are served <b>cache-first</b> from an in-memory Trie; writes are <b>buffered and
+  flushed in aggregate</b> to SQLite. Every concept is implemented from scratch (no frameworks)
+  so each design decision can be explained directly.</p>
+
+  <figure>
+    <img src="architecture.png" alt="Architecture diagram" />
+    <figcaption>Figure 1 — Read path (blue), write path (orange), and supporting components.
+      Numbered steps ①–④ trace a suggestion lookup and a search submission.</figcaption>
+  </figure>
+
+  <h3>Components</h3>
+  <table>
+    <tr><th>Component</th><th>File</th><th>Responsibility</th></tr>
+    <tr><td>HTTP Server</td><td class="mono">backend/server.py</td><td>Routing, JSON IO, static hosting; threaded.</td></tr>
+    <tr><td>Trie Index</td><td class="mono">backend/trie.py</td><td>In-memory serving index; cached top-K per node.</td></tr>
+    <tr><td>Distributed Cache</td><td class="mono">backend/cache.py</td><td>4 logical nodes, each a TTL dict; hit/miss counters.</td></tr>
+    <tr><td>Consistent-Hash Ring</td><td class="mono">backend/consistent_hash.py</td><td>Maps a prefix key to its owning cache node.</td></tr>
+    <tr><td>Batch Writer</td><td class="mono">backend/batch_writer.py</td><td>Buffers submissions; flushes aggregated writes.</td></tr>
+    <tr><td>Primary Store</td><td class="mono">backend/store.py</td><td>Durable <span class="mono">query_counts</span> table in SQLite.</td></tr>
+    <tr><td>Trending Ranker</td><td class="mono">backend/trending.py</td><td>Time-decayed recency score for ranking.</td></tr>
+    <tr><td>Metrics</td><td class="mono">backend/metrics.py</td><td>Latency percentiles, hit-rate, DB op counters.</td></tr>
+  </table>
+
+  <h3>Read path — <span class="mono">GET /suggest?q=&lt;prefix&gt;</span></h3>
+  <p>The prefix and mode form a cache key <span class="mono">"{mode}:{prefix}"</span>. The
+  consistent-hash ring selects the owning cache node ①. On a <b>hit</b> the cached suggestion
+  list is returned immediately. On a <b>miss</b> ② the system falls back to the Trie (the
+  in-memory primary index), which returns the cached top-K for that prefix in
+  <span class="mono">O(len(prefix))</span>; the result fills the cache with a TTL ③ and is returned.</p>
+
+  <h3>Write path — <span class="mono">POST /search</span></h3>
+  <p>A submission is <b>not</b> written to the database inline. It adds <span class="mono">+1</span>
+  to an in-memory buffer and returns <span class="mono">{"message":"Searched"}</span> in O(1). A
+  background thread flushes the buffer ④ every 2&nbsp;seconds or once 500 distinct queries
+  accumulate: it aggregates repeats, writes them in a single SQLite transaction, refreshes the
+  Trie's top-K, feeds the recency tracker, and invalidates the affected cached prefixes.</p>
+</section>
+
+<!-- ============ 2. DATASET ============ -->
+<section class="section">
+  <h2><span class="sec-no">2.</span>&nbsp; Dataset — source &amp; loading</h2>
+
+  <h3>Format &amp; size</h3>
+  <p>The store ingests a plain-text file, one record per line, as
+  <span class="mono">query&lt;TAB&gt;count</span> (commas are also accepted). The project ships a
+  generator that produces <b>120,000</b> distinct queries (the assignment requires ≥100,000).</p>
+  <pre>iphone            1000001
+samsung            500000
+iphone charger      18184
+java tutorial        2078
+best laptop review     64</pre>
+
+  <h3>Why a synthetic dataset</h3>
+  <p>Counts follow a <b>Zipf-like (power-law)</b> distribution — a few head queries are extremely
+  popular and a long tail is rare — which is the real shape of search traffic and the shape that
+  makes typeahead and caching meaningful. Generating it guarantees the project runs out-of-the-box
+  at the required size with no download or licensing friction. Queries are composed from realistic
+  brands, products, tech topics, adjectives, and intent tails (e.g. <i>"iphone charger"</i>,
+  <i>"best laptop review"</i>, <i>"java interview questions"</i>), with short clean queries ranked
+  highest so the typeahead head looks natural.</p>
+
+  <h3>Loading instructions</h3>
+  <pre><span class="c"># 1. generate the dataset (writes data/queries.txt)</span>
+python scripts/generate_dataset.py            <span class="c"># default 120,000</span>
+python scripts/generate_dataset.py 250000     <span class="c"># optional: larger</span>
+
+<span class="c"># 2. start the server — first run ingests the file into SQLite, then builds the Trie</span>
+python -m backend.server</pre>
+  <p>Ingestion is idempotent and runs only when the database is empty. On startup the log reports
+  rows ingested and Trie build time.</p>
+
+  <h3>Swapping in a real open-source dataset</h3>
+  <p>Produce the same <span class="mono">query&lt;TAB&gt;count</span> format, save it as
+  <span class="mono">data/queries.txt</span>, delete <span class="mono">data/typeahead.db*</span>,
+  and restart. Suitable sources: <b>Wikipedia page titles</b> (use pageviews as the count), the
+  <b>AOL query log</b> (aggregate identical queries), or any <b>e-commerce product catalogue</b>
+  (use views/sales). If a source has no counts, derive them by counting duplicate occurrences.</p>
+</section>
+
+<!-- ============ 3. API ============ -->
+<section class="section">
+  <h2><span class="sec-no">3.</span>&nbsp; API documentation</h2>
+  <p class="lead">Base URL <span class="mono">http://127.0.0.1:8000</span>. All responses are JSON.
+  A machine-readable summary is served at <span class="mono">GET /api</span>.</p>
+
+  <h3><span class="pill m-get">GET</span> <span class="mono">/suggest?q=&lt;prefix&gt;&amp;mode=count|trending&amp;limit=10</span></h3>
+  <p>Up to 10 prefix-matching suggestions. <span class="mono">mode=count</span> (default) ranks by
+  total search count; <span class="mono">mode=trending</span> ranks by the recency-aware score.</p>
+  <pre><span class="c">// GET /suggest?q=iphone</span>
+{ "prefix":"iphone", "mode":"count", "source":"cache",
+  "suggestions":[ {"query":"iphone","count":1000001},
+                  {"query":"iphone charger","count":18184} ] }</pre>
+
+  <h3><span class="pill m-post">POST</span> <span class="mono">/search</span></h3>
+  <p>Body <span class="mono">{"query":"..."}</span>. Records the query via the batch buffer and
+  returns a dummy response. Does not touch the database inline.</p>
+  <pre><span class="c">// POST /search  {"query":"iphone 15 pro"}</span>
+{ "message":"Searched", "query":"iphone 15 pro", "recorded":true }</pre>
+
+  <h3><span class="pill m-get">GET</span> <span class="mono">/trending?limit=10</span></h3>
+  <p>Top queries overall by the recency-aware trending score, each with its real count, decayed
+  <span class="mono">recent</span> activity, and combined <span class="mono">score</span>.</p>
+
+  <h3><span class="pill m-get">GET</span> <span class="mono">/cache/debug?prefix=&lt;p&gt;&amp;mode=count</span></h3>
+  <p>Explains routing: which cache node owns the prefix (consistent hashing), HIT/MISS state, the
+  key &amp; ring-point hashes, and a sample of how keys distribute across nodes.</p>
+  <pre><span class="c">// GET /cache/debug?prefix=iphone</span>
+{ "prefix":"iphone", "owner_node":"cache-a", "state":"HIT",
+  "sample_distribution":{"cache-a":6,"cache-b":2,"cache-c":3,"cache-d":4},
+  "ring_nodes":["cache-a","cache-b","cache-c","cache-d"], "vnodes_per_node":150 }</pre>
+
+  <h3><span class="pill m-get">GET</span> <span class="mono">/metrics</span></h3>
+  <p>Latency p50/p95/p99 per endpoint, cache hit-rate (overall and per node), batch
+  write-reduction, DB op counts, and Trie size. <span class="mono">GET /healthz</span> is a
+  liveness probe.</p>
+
+  <table>
+    <tr><th>Method &amp; path</th><th>Purpose</th></tr>
+    <tr><td class="mono">GET /suggest</td><td>Prefix suggestions (count or trending).</td></tr>
+    <tr><td class="mono">POST /search</td><td>Record a search (batched); returns "Searched".</td></tr>
+    <tr><td class="mono">GET /trending</td><td>Recency-aware trending list.</td></tr>
+    <tr><td class="mono">GET /cache/debug</td><td>Consistent-hash routing + HIT/MISS.</td></tr>
+    <tr><td class="mono">GET /metrics</td><td>Latency, hit-rate, write-reduction.</td></tr>
+    <tr><td class="mono">GET /healthz</td><td>Liveness.</td></tr>
+  </table>
+</section>
+
+<!-- ============ 4. DESIGN CHOICES ============ -->
+<section class="section">
+  <h2><span class="sec-no">4.</span>&nbsp; Design choices &amp; trade-offs</h2>
+
+  <h3>Trie with cached top-K (vs. scanning a sorted list)</h3>
+  <p>Each Trie node caches the best K completions of its prefix, so a lookup is
+  <span class="mono">O(len(prefix))</span> with no subtree scan. The top-K is maintained
+  incrementally and is <b>exact</b> because search counts only ever increase: a query can only
+  <i>enter</i> a node's top-K by growing, which the update path always catches. A plain sorted-array
+  scan would re-sort thousands of completions for short, hot prefixes on every miss.</p>
+
+  <h3>Consistent hashing with virtual nodes</h3>
+  <p>The cache is sharded across 4 logical nodes. Each is placed at 150 points on a hash ring, which
+  (a) spreads keys evenly — measured ≈25% per node — and (b) means adding/removing a node remaps only
+  ~1/N of keys instead of the whole keyspace. MD5 is used purely as a fast, well-distributed hash, not
+  for security.</p>
+  <div class="callout blue"><b>Trade-off:</b> more virtual nodes give a smoother distribution but a
+  larger ring and slightly slower lookups. 150 is a good balance for 4 nodes.</div>
+
+  <h3>Cache TTL + active invalidation</h3>
+  <p>Cached suggestion lists expire after a 30-second TTL as a safety net, and a batch flush also
+  explicitly deletes the prefixes whose counts just changed. This keeps suggestions fresh without
+  waiting for the TTL, while the TTL bounds staleness for anything not actively invalidated.</p>
+
+  <h3>Batch writes (the core write-reduction mechanism)</h3>
+  <p><span class="mono">POST /search</span> is O(1) and never touches SQLite; it only increments an
+  in-memory buffer. A background thread flushes every 2&nbsp;s or every 500 buffered queries,
+  aggregating repeats so 1000 searches of <i>"iphone"</i> become a single <span class="mono">+1000</span>
+  upsert in one transaction. This collapses thousands of writes into a handful.</p>
+  <div class="callout"><b>Failure trade-off:</b> submissions buffered but not yet flushed are lost if
+  the process crashes. The exposure is <b>bounded</b> by the flush interval/size (≤ one window). We
+  accept this small, bounded durability gap in exchange for a large reduction in write amplification.
+  A write-ahead log on the buffer would close the gap at the cost of added complexity.</div>
+
+  <h3>Recency-aware trending</h3>
+  <p>The same <span class="mono">/suggest</span> API serves both rankings.
+  <b>Basic</b> (<span class="mono">mode=count</span>) ranks by total count. <b>Enhanced</b>
+  (<span class="mono">mode=trending</span>) uses
+  <span class="mono">score = count + W · recent</span>, where <span class="mono">recent</span> is an
+  exponentially-decaying moving sum updated on each flush:</p>
+  <pre>recent ← recent · exp(−Δt / τ) + delta        <span class="c"># τ = 5 min</span>
+score  ← count + W · recent                   <span class="c"># W = 20,000</span></pre>
+  <div class="callout green"><b>Why it can't over-rank forever:</b> because the recency term decays
+  exponentially, a query that is hot for a short window loses its boost within a few τ and falls back
+  to its base count ranking. This directly satisfies the requirement to avoid permanently over-ranking
+  a briefly popular query. The hot-set is pruned once a query's decayed value approaches zero, keeping
+  the structure small.</div>
+
+  <h3>Why standard-library Python + SQLite</h3>
+  <p>No <span class="mono">pip install</span> means the project runs anywhere with just Python, which
+  satisfies "easy to run locally" and keeps every mechanism visible and explainable. SQLite is a real,
+  file-based database with transactional writes — ideal for demonstrating batched DB writes without
+  running a separate server.</p>
+</section>
+
+<!-- ============ 5. PERFORMANCE ============ -->
+<section class="section">
+  <h2><span class="sec-no">5.</span>&nbsp; Performance report</h2>
+  <p class="lead">Measured on Windows 11, Python 3.14, 120,000-query dataset, via
+  <span class="mono">scripts/benchmark.py</span> (drives the running server over HTTP). All numbers
+  are reproducible by running that script.</p>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="v">0.08 ms</div><div class="l">suggest p95 (server)</div></div>
+    <div class="kpi"><div class="v">~92%</div><div class="l">cache hit rate</div></div>
+    <div class="kpi"><div class="v">666×</div><div class="l">write reduction</div></div>
+    <div class="kpi"><div class="v">120k</div><div class="l">indexed queries</div></div>
+  </div>
+
+  <h3>Suggestion latency</h3>
+  <table>
+    <tr><th>Measurement</th><th>p50</th><th>p95</th><th>Notes</th></tr>
+    <tr><td>Server-side <span class="mono">/suggest</span></td><td>~0.05 ms</td><td><b>0.08 ms</b></td><td>internal timing (cache + Trie)</td></tr>
+    <tr><td>End-to-end (HTTP, localhost)</td><td>~1.9 ms</td><td>~2.3 ms</td><td>includes loopback + JSON overhead</td></tr>
+    <tr><td>Cold (forced cache miss)</td><td>~1.9 ms</td><td>~2.1 ms</td><td>Trie lookup still O(len(prefix))</td></tr>
+  </table>
+  <p>The Trie keeps even cold lookups fast, and the distributed cache absorbs repeated hot prefixes —
+  measured hit rate ≈ 92% under the benchmark's repeated-prefix workload.</p>
+
+  <h3>Batch-write reduction</h3>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Search submissions in test burst</td><td class="mono">2,000</td></tr>
+    <tr><td>SQLite write transactions used</td><td class="mono">3</td></tr>
+    <tr><td>Reduction for the burst</td><td class="mono">~666× fewer writes</td></tr>
+    <tr><td>Steady-state overall reduction (submissions ÷ txns)</td><td class="mono">~125×–195×</td></tr>
+  </table>
+  <p>Because every submission is buffered and only flushed in aggregate, write amplification drops by
+  two to three orders of magnitude versus one-write-per-search.</p>
+
+  <h3>Consistent-hash distribution</h3>
+  <p>A sample of prefix keys routed across the 4 cache nodes: <span class="mono">cache-a:6,
+  cache-b:2, cache-c:3, cache-d:4</span> — close to even given the small sample, and exposed live at
+  <span class="mono">/cache/debug</span>. Unit tests assert each node receives 15–35% of 8,000 keys
+  and that removing a node remaps &lt;45% of keys.</p>
+
+  <h3>Recency-aware trending — before/after</h3>
+  <p>For prefix <span class="mono">"co"</span>, the tail query <i>"consistent hashing"</i> has a base
+  count of ~650. After 1,500 recent searches its trending score rose to <b>~29,660,989</b> (count +
+  W·recent), dominating the ranking; with no further activity the boost decays back toward the base
+  count over a few τ. This demonstrates both the lift from recent activity and the anti-over-ranking
+  decay.</p>
+
+  <h3>Reproduce</h3>
+  <pre><span class="c"># terminal 1</span>
+python -m backend.server
+<span class="c"># terminal 2</span>
+python scripts/benchmark.py        <span class="c"># prints latency, hit-rate, write reduction, trending</span>
+python -m unittest discover -s tests -v   <span class="c"># 8 component tests</span></pre>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+# dataset + database are generated locally
+data/queries.txt
+data/typeahead.db
+data/typeahead.db-*
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

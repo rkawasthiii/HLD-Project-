@@ -1,0 +1,197 @@
+:root {
+  --bg: #0f1221;
+  --panel: #1a1f36;
+  --panel-2: #232a4a;
+  --text: #e8ebf5;
+  --muted: #9aa3c4;
+  --accent: #6c8cff;
+  --accent-2: #4ade80;
+  --border: #2c3360;
+  --hit: #4ade80;
+  --miss: #f87171;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  background: radial-gradient(1200px 600px at 50% -10%, #1c2444 0%, var(--bg) 60%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+}
+
+h1 {
+  font-size: 2rem;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  color: var(--muted);
+  margin: 0 0 28px;
+  font-size: 0.92rem;
+}
+
+/* ---- search box + dropdown ---- */
+.search { position: relative; }
+
+.search-row { display: flex; gap: 10px; }
+
+#box {
+  flex: 1;
+  padding: 15px 18px;
+  font-size: 1.05rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+#box:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.18);
+}
+
+#go {
+  padding: 0 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+#go:hover { filter: brightness(1.08); }
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.dropdown {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  position: absolute;
+  left: 0; right: 0;
+  z-index: 10;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  display: none;
+}
+.dropdown.open { display: block; }
+
+.dropdown li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dropdown li.active,
+.dropdown li:hover { background: var(--panel-2); }
+
+.dropdown li .q { font-size: 0.98rem; }
+.dropdown li .q b { color: var(--accent); font-weight: 700; }
+.dropdown li .meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  display: flex; gap: 8px; align-items: center;
+}
+.badge {
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(108,140,255,0.18);
+  color: var(--accent);
+}
+
+.status {
+  min-height: 18px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.status.error { color: var(--miss); }
+
+/* ---- search result ---- */
+.result {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+.result.hidden { display: none; }
+.result .ok { color: var(--accent-2); font-weight: 700; }
+
+/* ---- sections ---- */
+section { margin-top: 40px; }
+section h2 {
+  font-size: 1.1rem;
+  margin: 0 0 14px;
+}
+
+.trending-list {
+  margin: 0;
+  padding-left: 22px;
+}
+.trending-list li {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
+.trending-list li:hover .t-q { color: var(--accent); }
+.trending-list .t-meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- metrics ---- */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.metric {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.metric .label { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.metric .value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.metric .value small { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+
+.hint { color: var(--muted); font-size: 0.78rem; margin-top: 14px; }
+.hint code {
+  background: var(--panel-2);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+}

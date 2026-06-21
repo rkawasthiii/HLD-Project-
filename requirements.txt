@@ -1,0 +1,7 @@
+# This project intentionally uses the Python standard library ONLY.
+# There is nothing to pip install. You just need Python 3.9+ (tested on 3.14).
+#
+#   python scripts/generate_dataset.py   # one-time: build the >=100k dataset
+#   python -m backend.server             # start API + UI on http://127.0.0.1:8000
+#
+# (sqlite3, http.server, hashlib, threading, json — all stdlib.)
